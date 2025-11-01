@@ -11,8 +11,8 @@ android {
         applicationId = "com.ddonddo.dinodash"
         minSdk = 24
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.1.2"  // 버전 변경 시 자동으로 GitHub Release 생성
+        versionCode = 5
+        versionName = "1.1.3"  // 버전 변경 시 자동으로 GitHub Release 생성
     }
 
     buildTypes {
