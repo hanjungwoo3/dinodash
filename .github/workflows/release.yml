@@ -8,6 +8,9 @@ on:
     paths:
       - 'app/build.gradle.kts'
 
+permissions:
+  contents: write  # Release 생성 및 파일 업로드 권한
+
 jobs:
   build:
     runs-on: ubuntu-latest
