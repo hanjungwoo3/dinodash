@@ -52,28 +52,42 @@ jobs:
       if: steps.check_release.outputs.exists == 'false'
       run: ./gradlew assembleRelease
       
-    - name: Rename APK
+    - name: Find and Rename APK
       if: steps.check_release.outputs.exists == 'false'
       id: sign_apk
       run: |
-        # APK 파일 찾기 (signed 또는 unsigned)
-        cd app/build/outputs/apk/release/
-        APK_FILE=$(ls -1 *.apk | head -n 1)
+        echo "📦 Searching for APK files..."
         
-        if [ -z "$APK_FILE" ]; then
-          echo "Error: No APK file found"
+        # 전체 빌드 디렉토리 구조 확인
+        echo "Build directory structure:"
+        find app/build/outputs -type f -name "*.apk" || true
+        
+        # APK 파일 찾기 (모든 가능한 위치)
+        APK_PATH=$(find app/build/outputs -type f -name "*.apk" | head -n 1)
+        
+        if [ -z "$APK_PATH" ]; then
+          echo "❌ Error: No APK file found in app/build/outputs"
+          echo "Directory contents:"
+          ls -R app/build/outputs/
           exit 1
         fi
         
-        SIGNED_APK_PATH="app/build/outputs/apk/release/DinoDash-v${{ steps.version.outputs.version_name }}.apk"
+        echo "✅ Found APK: $APK_PATH"
         
-        # APK 파일 이름 변경
-        cd ../../../../
-        mv "app/build/outputs/apk/release/$APK_FILE" "$SIGNED_APK_PATH"
+        # 새로운 파일명
+        NEW_APK_NAME="DinoDash-v${{ steps.version.outputs.version_name }}.apk"
+        NEW_APK_PATH="app/build/outputs/apk/release/$NEW_APK_NAME"
         
-        echo "Found APK: $APK_FILE"
-        echo "Renamed to: DinoDash-v${{ steps.version.outputs.version_name }}.apk"
-        echo "signed_apk_path=$SIGNED_APK_PATH" >> $GITHUB_OUTPUT
+        # APK 파일 복사 (이동 대신)
+        cp "$APK_PATH" "$NEW_APK_PATH"
+        
+        echo "✅ Renamed to: $NEW_APK_NAME"
+        echo "📍 Path: $NEW_APK_PATH"
+        
+        # 파일 크기 확인
+        ls -lh "$NEW_APK_PATH"
+        
+        echo "signed_apk_path=$NEW_APK_PATH" >> $GITHUB_OUTPUT
         
     - name: Generate Release Notes
       if: steps.check_release.outputs.exists == 'false'
