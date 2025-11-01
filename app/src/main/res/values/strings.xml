@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">DinoDash</string>
+    <string name="game_over">게임 오버!</string>
+    <string name="tap_to_start">탭해서 시작하기</string>
+    <string name="tap_to_restart">탭해서 재시작</string>
+    <string name="score">점수: %1$d</string>
+    <string name="high_score">최고 점수: %1$d</string>
+</resources>
+
+

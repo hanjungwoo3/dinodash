@@ -1,0 +1,118 @@
+name: Build and Release APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'app/build.gradle.kts'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Extract version from build.gradle.kts
+      id: version
+      run: |
+        VERSION_NAME=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+        VERSION_CODE=$(grep -oP 'versionCode = \K[0-9]+' app/build.gradle.kts)
+        echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+        echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION_NAME (Code: $VERSION_CODE)"
+        
+    - name: Check if release already exists
+      id: check_release
+      run: |
+        if gh release view "v${{ steps.version.outputs.version_name }}" >/dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+          echo "Release v${{ steps.version.outputs.version_name }} already exists"
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "Release v${{ steps.version.outputs.version_name }} does not exist"
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Build Release APK
+      if: steps.check_release.outputs.exists == 'false'
+      run: ./gradlew assembleRelease
+      
+    - name: Sign APK
+      if: steps.check_release.outputs.exists == 'false'
+      id: sign_apk
+      run: |
+        APK_PATH="app/build/outputs/apk/release/app-release.apk"
+        SIGNED_APK_PATH="app/build/outputs/apk/release/DinoDash-v${{ steps.version.outputs.version_name }}.apk"
+        
+        # APK 파일 이름 변경
+        mv "$APK_PATH" "$SIGNED_APK_PATH"
+        
+        echo "signed_apk_path=$SIGNED_APK_PATH" >> $GITHUB_OUTPUT
+        
+    - name: Generate Release Notes
+      if: steps.check_release.outputs.exists == 'false'
+      id: release_notes
+      run: |
+        cat > release_notes.md << EOF
+        # 🎮 DinoDash v${{ steps.version.outputs.version_name }}
+        
+        ## 📱 다운로드
+        아래 APK 파일을 다운로드하여 설치하세요!
+        
+        ## ✨ 주요 기능
+        - 🐱 픽셀 아트 고양이 캐릭터
+        - 💧 물웅덩이 장애물
+        - 🏆 업적 시스템 (20개)
+        - 🌟 골드 스킨 (점프 1000번 달성)
+        - 💀 해골 스킨 (비밀 코드: ddonddo)
+        - 🎵 사운드 효과
+        - 🏔️ 배경 요소 (구름, 산)
+        - 📜 업적창 스크롤
+        
+        ## 🔧 이번 버전 변경사항
+        - 업적 알림 버그 수정
+        - 죽음/플레이/점프 관련 업적 알림 추가
+        
+        ## 📦 설치 방법
+        1. APK 파일 다운로드
+        2. 안드로이드 기기에서 "알 수 없는 출처" 앱 설치 허용
+        3. APK 파일 실행하여 설치
+        
+        ## 🎯 시스템 요구사항
+        - Android 7.0 (API 24) 이상
+        EOF
+        
+    - name: Create GitHub Release
+      if: steps.check_release.outputs.exists == 'false'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.version.outputs.version_name }}
+        name: DinoDash v${{ steps.version.outputs.version_name }}
+        body_path: release_notes.md
+        files: ${{ steps.sign_apk.outputs.signed_apk_path }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Release Summary
+      if: steps.check_release.outputs.exists == 'false'
+      run: |
+        echo "🎉 Release v${{ steps.version.outputs.version_name }} created successfully!"
+        echo "📦 APK: ${{ steps.sign_apk.outputs.signed_apk_path }}"
+

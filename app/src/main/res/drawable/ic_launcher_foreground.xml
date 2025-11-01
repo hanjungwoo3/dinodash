@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 고양이 얼굴 -->
+    <path
+        android:fillColor="#FF9966"
+        android:pathData="M 35,45 A 15,15 0 1,1 65,45 A 15,15 0 1,1 35,45 Z" />
+    <!-- 왼쪽 귀 -->
+    <path
+        android:fillColor="#FF9966"
+        android:pathData="M 40,35 L 35,25 L 45,35 Z" />
+    <!-- 오른쪽 귀 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M 55,35 L 65,25 L 60,35 Z" />
+    <!-- 눈 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M 44,43 A 2,2 0 1,1 48,43 A 2,2 0 1,1 44,43 Z M 52,43 A 2,2 0 1,1 56,43 A 2,2 0 1,1 52,43 Z" />
+</vector>
+
