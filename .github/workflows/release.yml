@@ -52,16 +52,27 @@ jobs:
       if: steps.check_release.outputs.exists == 'false'
       run: ./gradlew assembleRelease
       
-    - name: Sign APK
+    - name: Rename APK
       if: steps.check_release.outputs.exists == 'false'
       id: sign_apk
       run: |
-        APK_PATH="app/build/outputs/apk/release/app-release.apk"
+        # APK 파일 찾기 (signed 또는 unsigned)
+        cd app/build/outputs/apk/release/
+        APK_FILE=$(ls -1 *.apk | head -n 1)
+        
+        if [ -z "$APK_FILE" ]; then
+          echo "Error: No APK file found"
+          exit 1
+        fi
+        
         SIGNED_APK_PATH="app/build/outputs/apk/release/DinoDash-v${{ steps.version.outputs.version_name }}.apk"
         
         # APK 파일 이름 변경
-        mv "$APK_PATH" "$SIGNED_APK_PATH"
+        cd ../../../../
+        mv "app/build/outputs/apk/release/$APK_FILE" "$SIGNED_APK_PATH"
         
+        echo "Found APK: $APK_FILE"
+        echo "Renamed to: DinoDash-v${{ steps.version.outputs.version_name }}.apk"
         echo "signed_apk_path=$SIGNED_APK_PATH" >> $GITHUB_OUTPUT
         
     - name: Generate Release Notes
@@ -85,8 +96,13 @@ jobs:
         - 📜 업적창 스크롤
         
         ## 🔧 이번 버전 변경사항
+        - 업적 시스템 추가 (20개)
+        - 골드 스킨 추가 (점프 1000번 달성 시)
+        - 해골 스킨 추가 (비밀 코드: ddonddo)
+        - 업적창 스크롤 기능 추가
+        - 배경 요소 추가 (구름, 산)
+        - 코드 입력 시스템 추가
         - 업적 알림 버그 수정
-        - 죽음/플레이/점프 관련 업적 알림 추가
         
         ## 📦 설치 방법
         1. APK 파일 다운로드
